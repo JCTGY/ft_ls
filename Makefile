@@ -9,10 +9,17 @@ CFLAG = -Wall -Wextra -Werror
 INC = -Iincludes
 
 ALL_SRC = ft_ls.c \
-
+		  ls_allocation.c \
+		  ls_print.c \
+		  ls_sort.c \
+		  ls_time.c \
+		  ls_alpha.c \
+		  ls_help.c \
 
 SRC = $(addprefix $(SRC_DIR), $(ALL_SRC))
 OBJ = $(addprefix $(OBJ_DIR), $(ALL_SRC:.c=.o))
+
+all: $(NAME)
 
 $(NAME): $(OBJ)
 	make -C $(LIBFT_DIR)

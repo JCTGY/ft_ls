@@ -6,36 +6,39 @@
 /*   By: jchiang- <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/28 12:12:59 by jchiang-          #+#    #+#             */
-/*   Updated: 2019/04/06 16:36:08 by jchiang-         ###   ########.fr       */
+/*   Updated: 2019/04/13 13:07:37 by jchiang-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ls.h"
 
-static int		check_flag(char *av, int flag)
+static void		check_flag(char *av, int *flag)
 {
 	int		i;
 
-	i = 1;
-	while (av[i])
+	i = 0;
+	while (av[i++])
 	{
-		if (!ft_strchr("lRart", av[i]))
+		if (!ft_strchr("1lRartdgSo", av[i]))
 		{
 			ft_printf("ft_ls: illegal option -- %c\n", av[i]);
-			ft_printf("usage: ft_ls [-lRart] [file ...]\n");
-			return (0);
+			ft_printf("usage: ft_ls [1lRartdgSo] [file ...]\n");
+			exit(1);
 		}
 		else
 		{
-			(av[i] == 'l') && (flag |= F_L);
-			(av[i] == 'R') && (flag |= F_UR);
-			(av[i] == 'a') && (flag |= F_A);
-			(av[i] == 'r') && (flag |= F_LR);
-			(av[i] == 't') && (flag |= F_T);
+			(av[i] == 'l') && (*flag |= F_L);
+			(av[i] == 'R') && (*flag |= F_UR);
+			(av[i] == 'a') && (*flag |= F_A);
+			(av[i] == 'r') && (*flag |= F_LR);
+			(av[i] == 't') && (*flag |= F_T);
+			(av[i] == 'd') && (*flag |= F_DD);
+			(av[i] == 'g') && (*flag |= F_G);
+			(av[i] == 'S') && (*flag |= F_US);
+			(av[i] == 'o') && (*flag |= F_O);
+			(av[i] == '1') && (*flag |= F_ONE);
 		}
-		i++;
 	}
-	return (flag);
 }
 
 static int		sort_file(char **av, int ac, int i)
@@ -62,21 +65,12 @@ static int		sort_file(char **av, int ac, int i)
 	return (0);
 }
 
-static void		print_path(t_ls *ls)
-{
-	while (ls && ls->path)
-	{
-		ft_printf("%s\n", ls->path);
-		ls = ls->next;
-	}
-}
-
 static t_ls		*allocate_ls(char **av, int ac, int i)
 {
 	t_ls			*ls;
 
 	ls = NULL;
-	(ac == 1) && add_list("", ".", &ls);
+	(ac == i) && add_list("", ".", &ls);
 	while (ac >= 2 && av[i])
 		add_list("", av[i++], &ls);
 	return (ls);
@@ -88,16 +82,22 @@ int				main(int argc, char **argv)
 	int		i;
 	int		flag;
 
-	i = 0;
+	i = 1;
 	flag = 0;
-	if (argv[1] && argv[1][0] == '-')
-		if (!(flag = check_flag(argv[1], 0)))
+	while (argv[i] && argv[i][0] == '-')
+	{
+		check_flag(argv[i], &flag);
+		if (!flag)
+		{
+			ft_printf("ft_ls: -: No such file or directory\n");
 			return (-1);
-	i = ((argv[1] && argv[1][0] == '-') && (argc > 1)) ? 2 : 1;
+		}
+		i++;
+	}
 	(argc > 2) && sort_file(argv, argc, i);
 	ls = allocate_ls(argv, argc, i);
-	print_path(ls);
-	print_ls(ls, flag, 1);
-	free_ls(ls);
+	(!(flag & F_DD)) ? open_ls(ls, flag, 1) : ls_dflag(ls);
+	(flag & F_DD) ? print_ls(ls, flag) : 1;
+	free_ls(&ls);
 	return (0);
 }
